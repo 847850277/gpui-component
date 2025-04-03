@@ -1,6 +1,8 @@
+use std::time::Duration;
+
 use gpui::{
-    actions, div, prelude::FluentBuilder as _, App, AppContext, Axis, Context, Entity, Focusable,
-    InteractiveElement, IntoElement, ParentElement as _, Render, Styled, Window,
+    actions, div, prelude::FluentBuilder as _, App, AppContext, Axis, ClickEvent, Context, Entity,
+    Focusable, InteractiveElement, IntoElement, ParentElement as _, Render, Styled, Window,
 };
 use gpui_component::{
     button::{Button, ButtonGroup, ButtonVariants},
@@ -10,8 +12,10 @@ use gpui_component::{
     h_flex,
     input::TextInput,
     switch::Switch,
-    v_flex, AxisExt, FocusableCycle, Selectable, Sizable, Size,
+    v_flex, ActiveTheme, AxisExt, FocusableCycle, Selectable, Sizable, Size, Theme,
 };
+use serde_json::ser;
+use sqlx::mysql::MySqlPoolOptions;
 
 actions!(input_story, [Tab, TabPrev]);
 
@@ -24,6 +28,17 @@ pub struct MysqlFormStory {
     //login_button: Entity<Button>,
     layout: Axis,
     size: Size,
+    // 新增状态字段
+    connection_state: ConnectionState,
+    error_message: Option<String>,
+}
+
+#[derive(PartialEq)]
+enum ConnectionState {
+    Idle,
+    Connecting,
+    Connected,
+    Failed,
 }
 
 impl super::Story for MysqlFormStory {
@@ -81,7 +96,22 @@ impl MysqlFormStory {
             //login_button,
             layout: Axis::Vertical,
             size: Size::default(),
+            connection_state: ConnectionState::Idle,
+            error_message: None,
         }
+    }
+
+    fn on_click(ev: &ClickEvent, window: &mut Window, cx: &mut App) {
+        println!("Button clicked! {:?}", ev);
+    }
+
+    fn on_click_with_view(
+        view: &MysqlFormStory,
+        ev: &ClickEvent,
+        window: &mut Window,
+        cx: &mut App,
+    ) {
+        println!("Button clicked! {:?}", ev);
     }
 }
 
@@ -202,8 +232,47 @@ impl Render for MysqlFormStory {
                             .child(self.database_input.clone())
                             .description("Enter the database name you want to connect to."),
                     )
+                    //.child(form_field().child(Button::new("button-1").success().label("login")))
                     .child(
-                        form_field().child(Button::new("button-1").success().label("login")),
+                        // 为 login 按钮添加点击处理和状态显示
+                        form_field().child(
+                            Button::new("login")
+                                .success()
+                                .label(match self.connection_state {
+                                    ConnectionState::Idle => "Login",
+                                    ConnectionState::Connecting => "Connecting...",
+                                    ConnectionState::Connected => "Connected",
+                                    ConnectionState::Failed => "Retry Connection",
+                                })
+                                .loading(self.connection_state == ConnectionState::Connecting)
+                                //.disabled(self.connection_state == ConnectionState::Connecting)
+                                //.on_click(Self::on_click),
+                                .on_click(cx.listener(|this, _, _, cx| {
+                                    //let user_name = this.username_input.read(cx).text();
+                                    // 获取字段
+                                    let system = this.system_input.read(cx).text();
+                                    let server = this.server_input.read(cx).text();
+                                    let user_name = this.username_input.read(cx).text();
+                                    let password = this.password_input.read(cx).text();
+                                    let database = this.database_input.read(cx).text();
+                                    let url = format!(
+                                        "mysql://{}:{}@{}/{}",
+                                        user_name, password, server, database
+                                    );
+                                    println!("url: {}", url);
+                                    // 连接数据库
+                                    this.connection_state = ConnectionState::Connecting;
+                                    cx.notify();
+
+                                    // let password = view.password_input.get_text(cx);
+                                    // let server = view.server_input.get_text(cx);
+                                    // let database = view.database_input.get_text(cx);
+                                    // let system = view.system_input.get_text(cx);
+                                    // println!("user_name: {}, password: {}, server: {}, database: {}, system: {}", user_name, password, server, database, system);
+                                    //cx.notify();
+                                })),
+                            //.on_click(Self::on_click_with_view),
+                        ),
                     )
                     .child(
                         form_field().child(
