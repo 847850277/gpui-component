@@ -255,14 +255,62 @@ impl Render for MysqlFormStory {
                                     let user_name = this.username_input.read(cx).text();
                                     let password = this.password_input.read(cx).text();
                                     let database = this.database_input.read(cx).text();
-                                    let url = format!(
+                                    let connection_string = format!(
                                         "mysql://{}:{}@{}/{}",
                                         user_name, password, server, database
                                     );
-                                    println!("url: {}", url);
+                                    println!("connection_string: {}", connection_string);
+                                    // TODO 获取mysql 连接池
                                     // 连接数据库
                                     this.connection_state = ConnectionState::Connecting;
-                                    cx.notify();
+                                    //cx.notify();
+
+                                    // 在后台线程中尝试连接    
+                                    cx.spawn(async move |view, cx| {
+                                        // Simulate network request, delay 1s to load data.
+                                        // Timer::after(Duration::from_secs(1)).await;
+                            
+                                        // cx.update(|cx| {
+                                        //     let _ = view.update(cx, |view, _| {
+                                        //         view.delegate_mut().stocks.extend(random_stocks(200));
+                                        //         view.delegate_mut().loading = false;
+                                        //         view.delegate_mut().eof = view.delegate().stocks.len() >= 6000;
+                                        //     });
+                                        // })
+
+                                        let connection_result = MySqlPoolOptions::new()
+                                            .max_connections(5)
+                                            //.connect_timeout(Duration::from_secs(10))
+                                            .connect(&connection_string)
+                                            .await;
+
+                                        
+
+                                        println!("Connection result: {:?}", connection_result);
+                                            
+                                        // cx.update(|this, cx| {
+                                        //     match connection_result {
+                                        //         Ok(_pool) => {
+                                        //             this.connection_state = ConnectionState::Connected;
+                                        //             this.error_message = None;
+                                        //             println!("Connection successful!");
+                                        //         },
+                                        //         Err(err) => {
+                                        //             this.connection_state = ConnectionState::Failed;
+                                        //             this.error_message = Some(err.to_string());
+                                        //             println!("Connection failed: {:?}", err);
+                                        //         }
+                                        //     }
+                                        //     cx.notify();
+                                        // }).ok();
+                                    })
+                                    .detach();
+
+                                    // 在后台线程中尝试连接
+                                    // cx.spawn(|mut cx| async move {
+                                        
+                                    // });
+
 
                                     // let password = view.password_input.get_text(cx);
                                     // let server = view.server_input.get_text(cx);
