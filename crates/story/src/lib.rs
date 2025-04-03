@@ -9,6 +9,7 @@ mod image_story;
 mod input_story;
 mod list_story;
 mod modal_story;
+mod mysql_form_story;
 mod popup_story;
 mod progress_story;
 mod resizable_story;
@@ -30,6 +31,7 @@ pub use button_story::ButtonStory;
 pub use calendar_story::CalendarStory;
 pub use dropdown_story::DropdownStory;
 pub use form_story::FormStory;
+pub use mysql_form_story::MysqlFormStory;
 pub use tabs_story::TabsStory;
 pub use toggle_story::ToggleStory;
 
@@ -483,6 +485,7 @@ impl StoryState {
             "AccordionStory" => story!(AccordionStory),
             "SidebarStory" => story!(SidebarStory),
             "FormStory" => story!(FormStory),
+            "MysqlFormStory" => story!(MysqlFormStory),
             _ => {
                 unreachable!("Invalid story klass: {}", self.story_klass)
             }
