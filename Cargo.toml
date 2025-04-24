@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/story", "crates/ui"]
+members = ["crates/story", "crates/story-copy", "crates/ui"]
 
 default-members = ["crates/story"]
 resolver = "2"
@@ -8,6 +8,7 @@ resolver = "2"
 gpui = { git = "https://github.com/huacnlee/zed.git", branch = "webview" }
 gpui-component = { path = "crates/ui" }
 story = { path = "crates/story" }
+story-copy = { path = "crates/story-copy" }
 
 anyhow = "1"
 log = "0.4"

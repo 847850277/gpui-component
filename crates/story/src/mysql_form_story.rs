@@ -265,59 +265,14 @@ impl Render for MysqlFormStory {
                                     this.connection_state = ConnectionState::Connecting;
                                     //cx.notify();
 
-                                    // 在后台线程中尝试连接    
-                                    cx.spawn(async move |view, cx| {
-                                        // Simulate network request, delay 1s to load data.
-                                        // Timer::after(Duration::from_secs(1)).await;
-                            
-                                        // cx.update(|cx| {
-                                        //     let _ = view.update(cx, |view, _| {
-                                        //         view.delegate_mut().stocks.extend(random_stocks(200));
-                                        //         view.delegate_mut().loading = false;
-                                        //         view.delegate_mut().eof = view.delegate().stocks.len() >= 6000;
-                                        //     });
-                                        // })
+                                    print!("Connecting to MySQL...");
+                                    // 连接成功后，更新状态
+                                    this.connection_state = ConnectionState::Connected;
 
-                                        let connection_result = MySqlPoolOptions::new()
-                                            .max_connections(5)
-                                            //.connect_timeout(Duration::from_secs(10))
-                                            .connect(&connection_string)
-                                            .await;
+                                    //TODO 跳转home页面
+                                    
 
-                                        
-
-                                        println!("Connection result: {:?}", connection_result);
-                                            
-                                        // cx.update(|this, cx| {
-                                        //     match connection_result {
-                                        //         Ok(_pool) => {
-                                        //             this.connection_state = ConnectionState::Connected;
-                                        //             this.error_message = None;
-                                        //             println!("Connection successful!");
-                                        //         },
-                                        //         Err(err) => {
-                                        //             this.connection_state = ConnectionState::Failed;
-                                        //             this.error_message = Some(err.to_string());
-                                        //             println!("Connection failed: {:?}", err);
-                                        //         }
-                                        //     }
-                                        //     cx.notify();
-                                        // }).ok();
-                                    })
-                                    .detach();
-
-                                    // 在后台线程中尝试连接
-                                    // cx.spawn(|mut cx| async move {
-                                        
-                                    // });
-
-
-                                    // let password = view.password_input.get_text(cx);
-                                    // let server = view.server_input.get_text(cx);
-                                    // let database = view.database_input.get_text(cx);
-                                    // let system = view.system_input.get_text(cx);
-                                    // println!("user_name: {}, password: {}, server: {}, database: {}, system: {}", user_name, password, server, database, system);
-                                    //cx.notify();
+                                    
                                 })),
                             //.on_click(Self::on_click_with_view),
                         ),
