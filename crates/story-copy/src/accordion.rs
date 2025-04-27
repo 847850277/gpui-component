@@ -32,7 +32,7 @@ impl Accordion {
         cx.new(|cx| Self::new(window, cx))
     }
 
-    fn new(_: &mut Window, cx: &mut Context<Self>) -> Self {
+    pub fn new(_: &mut Window, cx: &mut Context<Self>) -> Self {
         Self {
             bordered: true,
             open_ixs: Vec::new(),
@@ -125,5 +125,34 @@ impl Render for Accordion {
                         })),
                 ),
         )
+    }
+}
+
+// test module
+// TODO 测试用例展示界面
+#[cfg(test)]
+mod tests {
+    use gpui::{px, size, Application, Bounds, WindowBounds, WindowOptions};
+
+    use super::*;
+
+    #[test]
+    fn test_accordion() {
+        println!("Accordion test");
+        // 展示 render
+        //let mut cx = App::new();
+        //gpui_component::init(&mut cx);
+        let mut app = Application::new();
+        app.run(|cx: &mut App| {
+            let bounds = Bounds::centered(None, size(px(500.), px(500.0)), cx);
+            cx.open_window(
+                WindowOptions {
+                    window_bounds: Some(WindowBounds::Windowed(bounds)),
+                    ..Default::default()
+                },
+                |window, cx| cx.new(|inner_cx| Accordion::new(window, inner_cx)),
+            )
+            .unwrap();
+        });
     }
 }
