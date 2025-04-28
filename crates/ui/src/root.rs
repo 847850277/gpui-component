@@ -34,6 +34,7 @@ pub trait ContextModal: Sized {
     fn open_modal<F>(&mut self, cx: &mut App, build: F)
     where
         F: Fn(Modal, &mut Window, &mut App) -> Modal + 'static;
+
     /// Return true, if there is an active Modal.
     fn has_active_modal(&mut self, cx: &mut App) -> bool;
 
@@ -90,6 +91,7 @@ impl ContextModal for Window {
 
     fn close_drawer(&mut self, cx: &mut App) {
         Root::update(self, cx, |root, window, cx| {
+            root.focused_input = None;
             root.active_drawer = None;
             root.focus_back(window, cx);
             cx.notify();
@@ -124,6 +126,7 @@ impl ContextModal for Window {
 
     fn close_modal(&mut self, cx: &mut App) {
         Root::update(self, cx, move |root, window, cx| {
+            root.focused_input = None;
             root.active_modals.pop();
 
             if let Some(top_modal) = root.active_modals.last() {
@@ -139,6 +142,7 @@ impl ContextModal for Window {
 
     fn close_all_modals(&mut self, cx: &mut App) {
         Root::update(self, cx, |root, window, cx| {
+            root.focused_input = None;
             root.active_modals.clear();
             root.focus_back(window, cx);
             cx.notify();
@@ -241,7 +245,7 @@ pub struct Root {
     /// When the Modal, Drawer closes, we will focus back to the previous view.
     previous_focus_handle: Option<FocusHandle>,
     active_drawer: Option<ActiveDrawer>,
-    active_modals: Vec<ActiveModal>,
+    pub(crate) active_modals: Vec<ActiveModal>,
     pub(super) focused_input: Option<Entity<TextInput>>,
     pub notification: Entity<NotificationList>,
     drawer_size: Option<DefiniteLength>,
@@ -256,7 +260,7 @@ struct ActiveDrawer {
 }
 
 #[derive(Clone)]
-struct ActiveModal {
+pub(crate) struct ActiveModal {
     focus_handle: FocusHandle,
     builder: Rc<dyn Fn(Modal, &mut Window, &mut App) -> Modal + 'static>,
 }

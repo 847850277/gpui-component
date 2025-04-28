@@ -13,11 +13,11 @@ use unicode_segmentation::*;
 use gpui::prelude::FluentBuilder as _;
 use gpui::{
     actions, div, impl_internal_actions, point, px, relative, AnyElement, App, AppContext, Bounds,
-    ClickEvent, ClipboardItem, Context, DefiniteLength, Entity, EntityInputHandler, EventEmitter,
-    FocusHandle, Focusable, InteractiveElement as _, IntoElement, KeyBinding, KeyDownEvent,
-    MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, ParentElement as _, Pixels, Point,
-    Rems, Render, ScrollHandle, ScrollWheelEvent, SharedString, Styled as _, Subscription,
-    UTF16Selection, Window, WrappedLine,
+    ClipboardItem, Context, DefiniteLength, Entity, EntityInputHandler, EventEmitter, FocusHandle,
+    Focusable, InteractiveElement as _, IntoElement, KeyBinding, KeyDownEvent, MouseButton,
+    MouseDownEvent, MouseMoveEvent, MouseUpEvent, ParentElement as _, Pixels, Point, Rems, Render,
+    ScrollHandle, ScrollWheelEvent, SharedString, Styled as _, Subscription, UTF16Selection,
+    Window, WrappedLine,
 };
 
 // TODO:
@@ -33,8 +33,8 @@ use crate::history::History;
 use crate::indicator::Indicator;
 use crate::input::clear_button;
 use crate::scroll::{Scrollbar, ScrollbarAxis, ScrollbarState};
-use crate::StyledExt;
-use crate::{ActiveTheme, Root};
+use crate::{h_flex, StyledExt};
+use crate::ActiveTheme;
 use crate::{IconName, Size};
 use crate::{Sizable, StyleSized};
 
@@ -85,6 +85,7 @@ actions!(
         MoveToPreviousWord,
         MoveToNextWord,
         TextChanged,
+        Escape
     ]
 );
 
@@ -116,6 +117,7 @@ pub fn init(cx: &mut App) {
         KeyBinding::new("ctrl-delete", DeleteToNextWordEnd, Some(CONTEXT)),
         KeyBinding::new("enter", Enter { secondary: false }, Some(CONTEXT)),
         KeyBinding::new("secondary-enter", Enter { secondary: true }, Some(CONTEXT)),
+        KeyBinding::new("escape", Escape, Some(CONTEXT)),
         KeyBinding::new("up", Up, Some(CONTEXT)),
         KeyBinding::new("down", Down, Some(CONTEXT)),
         KeyBinding::new("left", Left, Some(CONTEXT)),
@@ -233,6 +235,7 @@ pub struct TextInput {
     pub(super) mask_toggle: bool,
     pub(super) appearance: bool,
     pub(super) cleanable: bool,
+    pub(super) clean_on_escape: bool,
     pub(super) size: Size,
     pub(super) rows: usize,
     pub(super) min_rows: usize,
@@ -295,6 +298,7 @@ impl TextInput {
             mask_toggle: false,
             appearance: true,
             cleanable: false,
+            clean_on_escape: false,
             loading: false,
             prefix: None,
             suffix: None,
@@ -646,13 +650,25 @@ impl TextInput {
     }
 
     /// Set the placeholder text of the input field with reference.
-    pub fn set_placeholder(&mut self, placeholder: impl Into<SharedString>) {
+    pub fn set_placeholder(
+        &mut self,
+        placeholder: impl Into<SharedString>,
+        _: &Window,
+        cx: &mut Context<Self>,
+    ) {
         self.placeholder = placeholder.into();
+        cx.notify();
     }
 
     /// Set true to show the clear button when the input field is not empty.
     pub fn cleanable(mut self) -> Self {
         self.cleanable = true;
+        self
+    }
+
+    /// Set true to clear the input by pressing Escape key.
+    pub fn clean_on_escape(mut self) -> Self {
+        self.clean_on_escape = true;
         self
     }
 
@@ -671,7 +687,12 @@ impl TextInput {
     }
 
     /// Set the regular expression pattern of the input field with reference.
-    pub fn set_pattern(&mut self, pattern: regex::Regex) {
+    pub fn set_pattern(
+        &mut self,
+        pattern: regex::Regex,
+        _window: &mut Window,
+        _cx: &mut Context<Self>,
+    ) {
         self.pattern = Some(pattern);
     }
 
@@ -688,8 +709,8 @@ impl TextInput {
     }
 
     /// Return the text of the input field.
-    pub fn text(&self) -> SharedString {
-        self.text.clone()
+    pub fn text(&self) -> &SharedString {
+        &self.text
     }
 
     pub fn disabled(&self) -> bool {
@@ -1048,8 +1069,20 @@ impl TextInput {
         cx.notify();
     }
 
-    fn clean(&mut self, _: &ClickEvent, window: &mut Window, cx: &mut Context<Self>) {
+    fn clean(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.replace_text("", window, cx);
+    }
+
+    fn escape(&mut self, _: &Escape, window: &mut Window, cx: &mut Context<Self>) {
+        if self.selected_range.len() > 0 {
+            return self.unselect(window, cx);
+        }
+
+        if self.clean_on_escape {
+            return self.clean(window, cx);
+        }
+
+        cx.propagate();
     }
 
     fn on_mouse_down(
@@ -1445,12 +1478,7 @@ impl TextInput {
         self.focus_handle.is_focused(window) && self.blink_cursor.read(cx).visible()
     }
 
-    fn on_focus(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let input_entity = cx.entity();
-        Root::update(window, cx, |root, _, _| {
-            root.focused_input = Some(input_entity)
-        });
-
+    fn on_focus(&mut self, _: &mut Window, cx: &mut Context<Self>) {
         self.blink_cursor.update(cx, |cursor, cx| {
             cursor.start(cx);
         });
@@ -1458,10 +1486,6 @@ impl TextInput {
     }
 
     fn on_blur(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        Root::update(window, cx, |root, _, _| {
-            root.focused_input = None;
-        });
-
         self.unselect(window, cx);
         self.blink_cursor.update(cx, |cursor, cx| {
             cursor.stop(cx);
@@ -1756,6 +1780,13 @@ impl Render for TextInput {
 
         let prefix = self.prefix.as_ref().map(|build| build(window, cx));
         let suffix = self.suffix.as_ref().map(|build| build(window, cx));
+        let show_clear_button =
+            self.cleanable && !self.loading && !self.text.is_empty() && self.is_single_line();
+        let bg = if self.disabled {
+            cx.theme().muted
+        } else {
+            cx.theme().background
+        };
 
         div()
             .flex()
@@ -1770,6 +1801,7 @@ impl Render for TextInput {
                     .on_action(cx.listener(Self::delete_previous_word))
                     .on_action(cx.listener(Self::delete_next_word))
                     .on_action(cx.listener(Self::enter))
+                    .on_action(cx.listener(Self::escape))
             })
             .on_action(cx.listener(Self::left))
             .on_action(cx.listener(Self::right))
@@ -1815,40 +1847,49 @@ impl Render for TextInput {
                     .when_some(self.height, |this, height| this.h(height))
             })
             .when(self.appearance, |this| {
-                this.bg(if self.disabled {
-                    cx.theme().muted
-                } else {
-                    cx.theme().background
-                })
-                .border_color(cx.theme().input)
-                .border_1()
-                .rounded(cx.theme().radius)
-                .when(cx.theme().shadow, |this| this.shadow_sm())
-                .when(focused, |this| this.focused_border(cx))
+                this.bg(bg)
+                    .border_color(cx.theme().input)
+                    .border_1()
+                    .rounded(cx.theme().radius)
+                    .when(cx.theme().shadow, |this| this.shadow_sm())
+                    .when(focused, |this| this.focused_border(cx))
             })
             .when(prefix.is_none(), |this| this.input_pl(self.size))
-            .when(suffix.is_none(), |this| this.input_pr(self.size))
-            .children(prefix)
-            .gap(gap_x)
+            .input_pr(self.size)
             .items_center()
+            .gap(gap_x)
+            .children(prefix)
             .child(
                 div()
-                    .id("TextElement")
+                    .id("text-element")
                     .flex_1()
                     .when(self.is_multi_line(), |this| this.h_full())
                     .flex_grow()
                     .overflow_x_hidden()
                     .child(TextElement::new(cx.entity().clone())),
             )
-            .when(self.loading, |this| {
-                this.child(Indicator::new().color(cx.theme().muted_foreground))
-            })
-            .children(self.render_toggle_mask_button(window, cx))
-            .when(
-                self.cleanable && !self.loading && !self.text.is_empty() && self.is_single_line(),
-                |this| this.child(clear_button(cx).on_click(cx.listener(Self::clean))),
+            .child(
+                h_flex()
+                    .id("suffix")
+                    .absolute()
+                    .gap(gap_x)
+                    .when(self.appearance, |this| this.bg(bg))
+                    .items_center()
+                    .when(suffix.is_none(), |this| this.pr_1())
+                    .right_0()
+                    .when(self.loading, |this| {
+                        this.child(Indicator::new().color(cx.theme().muted_foreground))
+                    })
+                    .children(self.render_toggle_mask_button(window, cx))
+                    .when(show_clear_button, |this| {
+                        this.child(
+                            clear_button(cx).on_click(cx.listener(|view, _, window, cx| {
+                                view.clean(window, cx);
+                            })),
+                        )
+                    })
+                    .children(suffix),
             )
-            .children(suffix)
             .when(self.is_multi_line(), |this| {
                 let entity_id = cx.entity().entity_id();
                 if self.last_layout.is_some() {

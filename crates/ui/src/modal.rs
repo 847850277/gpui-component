@@ -12,7 +12,7 @@ use crate::{
     actions::{Cancel, Confirm},
     animation::cubic_bezier,
     button::{Button, ButtonVariant, ButtonVariants as _},
-    h_flex, v_flex, ActiveTheme as _, ContextModal, IconName, Sizable as _, StyledExt,
+    h_flex, v_flex, ActiveTheme as _, ContextModal, IconName, Root, Sizable as _, StyledExt,
 };
 
 const CONTEXT: &str = "Modal";
@@ -83,7 +83,7 @@ pub struct Modal {
     margin_top: Option<Pixels>,
 
     on_close: Rc<dyn Fn(&ClickEvent, &mut Window, &mut App) + 'static>,
-    on_ok: Rc<dyn Fn(&ClickEvent, &mut Window, &mut App) -> bool + 'static>,
+    on_ok: Option<Rc<dyn Fn(&ClickEvent, &mut Window, &mut App) -> bool + 'static>>,
     on_cancel: Rc<dyn Fn(&ClickEvent, &mut Window, &mut App) -> bool + 'static>,
     button_props: ModalButtonProps,
     show_close: bool,
@@ -137,7 +137,7 @@ impl Modal {
             layer_ix: 0,
             overlay_visible: true,
             on_close: Rc::new(|_, _, _| {}),
-            on_ok: Rc::new(|_, _, _| true),
+            on_ok: None,
             on_cancel: Rc::new(|_, _, _| true),
             button_props: ModalButtonProps::default(),
             show_close: true,
@@ -202,7 +202,7 @@ impl Modal {
         mut self,
         on_ok: impl Fn(&ClickEvent, &mut Window, &mut App) -> bool + 'static,
     ) -> Self {
-        self.on_ok = Rc::new(on_ok);
+        self.on_ok = Some(Rc::new(on_ok));
         self
     }
 
@@ -302,9 +302,11 @@ impl RenderOnce for Modal {
                         let on_close = on_close.clone();
 
                         move |_, window, cx| {
-                            if on_ok(&ClickEvent::default(), window, cx) {
-                                on_close(&ClickEvent::default(), window, cx);
-                                window.close_modal(cx);
+                            if let Some(on_ok) = &on_ok {
+                                if on_ok(&ClickEvent::default(), window, cx) {
+                                    on_close(&ClickEvent::default(), window, cx);
+                                    window.close_modal(cx);
+                                }
                             }
                         }
                     })
@@ -362,6 +364,11 @@ impl RenderOnce for Modal {
                         this.occlude().bg(overlay_color(self.overlay, window, cx))
                     })
                     .when(self.overlay_closable, |this| {
+                        // Only the last modal owns the `mouse down - close modal` event.
+                        if (self.layer_ix + 1) != Root::read(window, cx).active_modals.len() {
+                            return this;
+                        }
+
                         this.on_mouse_down(MouseButton::Left, {
                             let on_cancel = on_cancel.clone();
                             let on_close = on_close.clone();
@@ -394,9 +401,14 @@ impl RenderOnce for Modal {
                                 .on_action({
                                     let on_ok = on_ok.clone();
                                     let on_close = on_close.clone();
+                                    let has_footer = self.footer.is_some();
                                     move |_: &Confirm, window, cx| {
-                                        if on_ok(&ClickEvent::default(), window, cx) {
-                                            on_close(&ClickEvent::default(), window, cx);
+                                        if let Some(on_ok) = &on_ok {
+                                            if on_ok(&ClickEvent::default(), window, cx) {
+                                                on_close(&ClickEvent::default(), window, cx);
+                                                window.close_modal(cx);
+                                            }
+                                        } else if has_footer {
                                             window.close_modal(cx);
                                         }
                                     }

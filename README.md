@@ -66,6 +66,8 @@ gpui-component = { git = "https://github.com/longbridge/gpui-component.git" }
 
 ### WebView
 
+> Still early experimental, there have a lot of limitations.
+
 GPUI Component have `WebView` element based on [Wry](https://github.com/tauri-apps/wry), this is an optional feature, you can enable it by feature flag.
 
 ```toml
@@ -85,15 +87,17 @@ You can add icons that you need in your project.
 
 If you want to see the demo, here is a some demo applications.
 
-- [gpui-app-windows.zip](https://github.com/user-attachments/files/17396296/gpui-app-windows.zip) - Updated at 2024/10/16
+- [gallery-app-windows.zip](https://github.com/user-attachments/files/19796209/gallery.zip) - Updated at 2025/04/17
 
 ## Development
+
+We have a gallery of applications built with GPUI Component.
 
 ```bash
 cargo run
 ```
 
-More examples can be found in `examples` directory.
+More examples can be found in `examples` directory, you can run them by `cargo run --example <example_name>`.
 
 Checkout [DEVELOPMENT](DEVELOPMENT) to see more details.
 

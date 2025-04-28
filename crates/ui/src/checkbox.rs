@@ -1,8 +1,11 @@
-use crate::{h_flex, text::Text, v_flex, ActiveTheme, Disableable, IconName, Selectable};
+use crate::{
+    text::Text, v_flex, ActiveTheme, Disableable, IconName, Selectable, Sizable, Size,
+    StyledExt as _,
+};
 use gpui::{
-    div, prelude::FluentBuilder as _, px, relative, svg, AnyElement, App, Div, ElementId,
-    InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement as _,
-    Styled, Window,
+    div, prelude::FluentBuilder as _, px, relative, rems, svg, AnyElement, App, Div, ElementId,
+    InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled,
+    Window,
 };
 
 /// A Checkbox element.
@@ -14,6 +17,7 @@ pub struct Checkbox {
     children: Vec<AnyElement>,
     checked: bool,
     disabled: bool,
+    size: Size,
     on_click: Option<Box<dyn Fn(&bool, &mut Window, &mut App) + 'static>>,
 }
 
@@ -26,6 +30,7 @@ impl Checkbox {
             children: Vec::new(),
             checked: false,
             disabled: false,
+            size: Size::default(),
             on_click: None,
         }
     }
@@ -45,6 +50,13 @@ impl Checkbox {
         self
     }
 }
+
+impl InteractiveElement for Checkbox {
+    fn interactivity(&mut self) -> &mut gpui::Interactivity {
+        self.base.interactivity()
+    }
+}
+impl StatefulInteractiveElement for Checkbox {}
 
 impl Styled for Checkbox {
     fn style(&mut self) -> &mut gpui::StyleRefinement {
@@ -75,6 +87,13 @@ impl ParentElement for Checkbox {
     }
 }
 
+impl Sizable for Checkbox {
+    fn with_size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
+}
+
 impl RenderOnce for Checkbox {
     fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
         let (color, icon_color) = if self.disabled {
@@ -87,17 +106,31 @@ impl RenderOnce for Checkbox {
         };
         let radius = (cx.theme().radius / 2.).min(px(6.));
 
-        self.base.child(
-            h_flex()
+        div().child(
+            self.base
                 .id(self.id)
+                .h_flex()
                 .gap_2()
                 .items_start()
                 .line_height(relative(1.))
                 .text_color(cx.theme().foreground)
+                .map(|this| match self.size {
+                    Size::XSmall => this.text_xs(),
+                    Size::Small => this.text_sm(),
+                    Size::Medium => this.text_base(),
+                    Size::Large => this.text_lg(),
+                    _ => this,
+                })
                 .child(
                     v_flex()
                         .relative()
-                        .size_4()
+                        .map(|this| match self.size {
+                            Size::XSmall => this.size_3(),
+                            Size::Small => this.size_3p5(),
+                            Size::Medium => this.size_4(),
+                            Size::Large => this.size(rems(1.125)),
+                            _ => this.size_4(),
+                        })
                         .flex_shrink_0()
                         .border_1()
                         .border_color(color)
@@ -111,7 +144,13 @@ impl RenderOnce for Checkbox {
                                 .absolute()
                                 .top_px()
                                 .left_px()
-                                .size_3()
+                                .map(|this| match self.size {
+                                    Size::XSmall => this.size_2(),
+                                    Size::Small => this.size_2p5(),
+                                    Size::Medium => this.size_3(),
+                                    Size::Large => this.size_3p5(),
+                                    _ => this.size_3(),
+                                })
                                 .text_color(icon_color)
                                 .map(|this| match self.checked {
                                     true => this.path(IconName::Check.path()),
@@ -119,34 +158,36 @@ impl RenderOnce for Checkbox {
                                 }),
                         ),
                 )
-                .child(
-                    v_flex()
-                        .w_full()
-                        .line_height(relative(1.2))
-                        .gap_1()
-                        .map(|this| {
-                            if let Some(label) = self.label {
-                                this.child(
-                                    div()
-                                        .size_full()
-                                        .text_color(cx.theme().foreground)
-                                        .line_height(relative(1.))
-                                        .child(label),
-                                )
-                            } else {
-                                this
-                            }
-                        })
-                        .children(self.children),
-                )
+                .when(self.label.is_some() || !self.children.is_empty(), |this| {
+                    this.child(
+                        v_flex()
+                            .w_full()
+                            .line_height(relative(1.2))
+                            .gap_1()
+                            .map(|this| {
+                                if let Some(label) = self.label {
+                                    this.child(
+                                        div()
+                                            .size_full()
+                                            .text_color(cx.theme().foreground)
+                                            .line_height(relative(1.))
+                                            .child(label),
+                                    )
+                                } else {
+                                    this
+                                }
+                            })
+                            .children(self.children),
+                    )
+                })
                 .when(self.disabled, |this| {
-                    this.cursor_not_allowed()
-                        .text_color(cx.theme().muted_foreground)
+                    this.text_color(cx.theme().muted_foreground)
                 })
                 .when_some(
                     self.on_click.filter(|_| !self.disabled),
                     |this, on_click| {
                         this.on_click(move |_, window, cx| {
+                            cx.stop_propagation();
                             let checked = !self.checked;
                             on_click(&checked, window, cx);
                         })
