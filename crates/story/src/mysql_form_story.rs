@@ -270,9 +270,6 @@ impl Render for MysqlFormStory {
                                     this.connection_state = ConnectionState::Connected;
 
                                     //TODO 跳转home页面
-                                    
-
-                                    
                                 })),
                             //.on_click(Self::on_click_with_view),
                         ),

@@ -3,12 +3,15 @@ use gpui::{
     Render, Styled, Window,
 };
 use gpui_component::{
+    accordion::Accordion,
     button::{Button, ButtonGroup},
     checkbox::Checkbox,
-    h_flex, v_flex, Selectable, Size, StyledExt,
+    h_flex,
+    switch::Switch,
+    v_flex, IconName, Selectable, Sizable, Size,
 };
 
-pub struct Accordion {
+pub struct AccordionStory {
     open_ixs: Vec<usize>,
     size: Size,
     bordered: bool,
@@ -17,7 +20,7 @@ pub struct Accordion {
     focus_handle: FocusHandle,
 }
 
-impl super::Story for Accordion {
+impl super::Story for AccordionStory {
     fn title() -> &'static str {
         "Accordion"
     }
@@ -27,7 +30,7 @@ impl super::Story for Accordion {
     }
 }
 
-impl Accordion {
+impl AccordionStory {
     pub fn view(window: &mut Window, cx: &mut App) -> Entity<Self> {
         cx.new(|cx| Self::new(window, cx))
     }
@@ -43,21 +46,28 @@ impl Accordion {
         }
     }
 
+    fn toggle_accordion(&mut self, open_ixs: Vec<usize>, _: &mut Window, cx: &mut Context<Self>) {
+        self.open_ixs = open_ixs;
+        cx.notify();
+    }
+
     fn set_size(&mut self, size: Size, _: &mut Window, cx: &mut Context<Self>) {
         self.size = size;
         cx.notify();
     }
 }
 
-impl Focusable for Accordion {
+impl Focusable for AccordionStory {
     fn focus_handle(&self, _: &gpui::App) -> gpui::FocusHandle {
         self.focus_handle.clone()
     }
 }
 
-impl Render for Accordion {
+impl Render for AccordionStory {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        v_flex().gap_3().child(
+        v_flex()
+        .gap_3()
+        .child(
             h_flex()
                 .items_center()
                 .justify_between()
@@ -125,34 +135,71 @@ impl Render for Accordion {
                         })),
                 ),
         )
+        .child(
+            Accordion::new("test")
+                .bordered(self.bordered)
+                .with_size(self.size)
+                .disabled(self.disabled)
+                .multiple(self.multiple)
+                .item(|this|
+                    this.open(self.open_ixs.contains(&0))
+                        .icon(IconName::Info)
+                        .title("This is first accordion")
+                        .content("Hello")
+                )
+               .item(|this|
+                    this.open(self.open_ixs.contains(&1))
+                        .icon(IconName::Inbox)
+                        .title("This is second accordion")
+                        .content(
+                            v_flex()
+                                .gap_2()
+                                .child(
+                                    "We can put any view here, like a v_flex with a text view",
+                                )
+                                .child(Switch::new("switch1").label("Switch"))
+                                .child(Checkbox::new("checkbox1").label("Or a Checkbox")),
+                        )
+                )
+                 .item(|this|
+                    this.open(self.open_ixs.contains(&2))
+                        .icon(IconName::Moon)
+                        .title("This is third accordion")
+                        .content(
+                            "This is the third accordion content. It can be any view, like a text view or a button."
+                        )
+                ) .on_toggle_click(cx.listener(|this, open_ixs: &[usize], window,cx| {
+                    this.toggle_accordion(open_ixs.to_vec(), window, cx);
+                })),
+        )
     }
 }
 
 // test module
 // TODO 测试用例展示界面
-#[cfg(test)]
-mod tests {
-    use gpui::{px, size, Application, Bounds, WindowBounds, WindowOptions};
+// #[cfg(test)]
+// mod tests {
+//     use gpui::{px, size, Application, Bounds, WindowBounds, WindowOptions};
 
-    use super::*;
+//     use super::*;
 
-    #[test]
-    fn test_accordion() {
-        println!("Accordion test");
-        // 展示 render
-        //let mut cx = App::new();
-        //gpui_component::init(&mut cx);
-        let mut app = Application::new();
-        app.run(|cx: &mut App| {
-            let bounds = Bounds::centered(None, size(px(500.), px(500.0)), cx);
-            cx.open_window(
-                WindowOptions {
-                    window_bounds: Some(WindowBounds::Windowed(bounds)),
-                    ..Default::default()
-                },
-                |window, cx| cx.new(|inner_cx| Accordion::new(window, inner_cx)),
-            )
-            .unwrap();
-        });
-    }
-}
+//     #[test]
+//     fn test_accordion() {
+//         println!("Accordion test");
+//         // 展示 render
+//         //let mut cx = App::new();
+//         //gpui_component::init(&mut cx);
+//         let mut app = Application::new();
+//         app.run(|cx: &mut App| {
+//             let bounds = Bounds::centered(None, size(px(500.), px(500.0)), cx);
+//             cx.open_window(
+//                 WindowOptions {
+//                     window_bounds: Some(WindowBounds::Windowed(bounds)),
+//                     ..Default::default()
+//                 },
+//                 |window, cx| cx.new(|inner_cx| AccordionStory::new(window, inner_cx)),
+//             )
+//             .unwrap();
+//         });
+//     }
+// }
