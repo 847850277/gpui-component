@@ -18,6 +18,7 @@ mod label_story;
 mod list_story;
 mod menu_story;
 mod modal_story;
+pub mod mysql_form_story;
 mod notification_story;
 mod number_input_story;
 mod otp_input_story;

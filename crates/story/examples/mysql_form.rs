@@ -1,5 +1,5 @@
 use gpui::*;
-use story::{Assets, MysqlFormStory};
+use story::{mysql_form_story::MysqlFormStory, Assets};
 
 pub struct Example {
     story: Entity<MysqlFormStory>,
