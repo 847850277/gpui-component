@@ -8,13 +8,15 @@ fn main() {
         // Initialize the gpui-component library
         gpui_component::init(cx);
         cx.activate(true);
-        let bounds = Bounds::centered(None, size(px(500.), px(500.0)), cx);
+
+        let bounds = Bounds::centered(None, size(px(1600.), px(1200.0)), cx);
+        let option = WindowOptions {
+            window_bounds: Some(WindowBounds::Windowed(bounds)),
+            ..Default::default()
+        };
 
         cx.open_window(
-            WindowOptions {
-                window_bounds: Some(WindowBounds::Windowed(bounds)),
-                ..Default::default()
-            },
+            option,
             |window, cx| cx.new(|inner_cx| AccordionStory::new(window, inner_cx)),
         )
         .unwrap();
