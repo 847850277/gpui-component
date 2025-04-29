@@ -1,9 +1,9 @@
 use gpui::{px, size, App, AppContext, Application, Bounds, WindowBounds, WindowOptions};
 use gpui_component::Root;
 use story_copy::accordion::AccordionStory;
-use story_copy::StoryRoot;
+use story_copy::SingleStoryRoot;
 
-// TODO 增加title bar
+//增加title bar
 fn main() {
     let app = Application::new();
     app.run(|cx: &mut App| {
@@ -19,7 +19,8 @@ fn main() {
         cx.open_window(option, |window, cx| {
             // 创建视图
             let view = AccordionStory::view(window, cx);
-            let root = cx.new(|cx| StoryRoot::new(view, window, cx));
+            //let root = cx.new(|cx| SingleStoryRoot::new(view, window, cx));
+            let root = cx.new(|cx| SingleStoryRoot::new(view, window, cx));
             cx.new(|cx| Root::new(root.into(), window, cx))
             //cx.new(|inner_cx| AccordionStory::new(window, inner_cx))
         }).expect("failed to open window");;

@@ -1,7 +1,12 @@
-use gpui::{div, AnyView, App, Context, Entity, Focusable, IntoElement, ParentElement, Render, SharedString, Styled, Window};
+use app_title_bar::AppTitleBar;
+use gpui::{
+    div, AnyView, App, Context, Entity, Focusable, IntoElement, ParentElement, Render,
+    SharedString, Styled, Window,
+};
 use gpui_component::{v_flex, Root};
 
 pub mod accordion;
+pub mod app_title_bar;
 
 pub trait Story: Focusable + Render {
     fn title() -> &'static str;
@@ -9,24 +14,22 @@ pub trait Story: Focusable + Render {
     fn new_view(window: &mut Window, cx: &mut App) -> Entity<impl Render + Focusable>;
 }
 
-
-pub struct StoryRoot{
+pub struct StoryRoot {
+    title_bar: Entity<AppTitleBar>,
     view: AnyView,
 }
 
-impl StoryRoot {
-    pub fn new(
-        view: impl Into<AnyView>,
-        window: &mut Window,
-        cx: &mut Context<Self>,
-    ) -> Self {
-        Self {
-            view: view.into(),
-        }
+pub struct SingleStoryRoot {
+    view: AnyView,
+}
+
+impl SingleStoryRoot {
+    pub fn new(view: impl Into<AnyView>, window: &mut Window, cx: &mut Context<Self>) -> Self {
+        Self { view: view.into() }
     }
 }
 
-impl Render for StoryRoot {
+impl Render for SingleStoryRoot {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let drawer_layer = Root::render_drawer_layer(window, cx);
         let modal_layer = Root::render_modal_layer(window, cx);
