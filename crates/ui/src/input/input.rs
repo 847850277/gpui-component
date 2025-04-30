@@ -33,8 +33,8 @@ use crate::history::History;
 use crate::indicator::Indicator;
 use crate::input::clear_button;
 use crate::scroll::{Scrollbar, ScrollbarAxis, ScrollbarState};
-use crate::{h_flex, StyledExt};
 use crate::ActiveTheme;
+use crate::{h_flex, StyledExt};
 use crate::{IconName, Size};
 use crate::{Sizable, StyleSized};
 

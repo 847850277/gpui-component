@@ -15,10 +15,9 @@ fn main() {
             ..Default::default()
         };
 
-        cx.open_window(
-            option,
-            |window, cx| cx.new(|inner_cx| AccordionStory::new(window, inner_cx)),
-        )
+        cx.open_window(option, |window, cx| {
+            cx.new(|inner_cx| AccordionStory::new(window, inner_cx))
+        })
         .unwrap();
     });
 }
