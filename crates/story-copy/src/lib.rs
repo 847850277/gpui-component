@@ -8,9 +8,10 @@ use gpui::{
 use gpui_component::{v_flex, Root};
 
 pub mod accordion;
+pub mod alert;
 pub mod app_title_bar;
 pub mod assets;
-pub mod alert;
+pub mod section;
 
 #[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct SelectLocale(SharedString);

@@ -1,11 +1,12 @@
-use gpui::{px, size, App, AppContext, Application, Bounds, SharedString, WindowBounds, WindowOptions};
+use gpui::{
+    px, size, App, AppContext, Application, Bounds, SharedString, WindowBounds, WindowOptions,
+};
 use gpui_component::Root;
 use story_copy::alert::AlertStory;
 use story_copy::assets::Assets;
 use story_copy::StoryRoot;
 
 fn main() {
-
     let app = Application::new().with_assets(Assets);
     app.run(|cx: &mut App| {
         // Initialize the gpui-component library
@@ -27,6 +28,6 @@ fn main() {
             cx.new(|cx| Root::new(root.into(), window, cx))
             //cx.new(|inner_cx| AccordionStory::new(window, inner_cx))
         })
-            .expect("failed to open window");
+        .expect("failed to open window");
     });
 }
