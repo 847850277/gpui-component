@@ -11,6 +11,7 @@ pub mod accordion;
 pub mod alert;
 pub mod app_title_bar;
 pub mod assets;
+pub mod button;
 pub mod section;
 
 #[derive(Clone, PartialEq, Eq, Deserialize)]
