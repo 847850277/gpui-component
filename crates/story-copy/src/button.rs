@@ -6,9 +6,7 @@ use gpui::{
 };
 use gpui_component::button::{Button, ButtonCustomVariant, ButtonVariants};
 use gpui_component::checkbox::Checkbox;
-use gpui_component::{
-    h_flex, indigo, indigo_800, v_flex, white, ActiveTheme, Disableable, Selectable, Theme,
-};
+use gpui_component::{h_flex, indigo, indigo_800, v_flex, white, ActiveTheme, Disableable, Icon, IconName, Selectable, Theme};
 
 actions!(button_story, [Disabled, Loading, Selected, Compact]);
 
@@ -232,6 +230,86 @@ impl Render for ButtonStory {
                     .child(
                         Button::new("button-5-text")
                             .text()
+                            .label("Text Button")
+                            .disabled(disabled)
+                            .selected(selected)
+                            .loading(loading)
+                            .when(compact, |this| this.compact())
+                            .on_click(Self::on_click),
+                    ),
+            )
+            .child(
+                section("Button with Icon")
+                    .child(Button::new("button-icon-1")
+                               .primary()
+                               .label("Confirm")
+                               .icon(IconName::Check)
+                               .disabled(disabled)
+                               .selected(selected)
+                               .loading(loading)
+                               .when(compact, |this| this.compact())
+                               .on_click(Self::on_click),)
+                    .child(Button::new("button-icon-2")
+                               .label("Abort")
+                               .icon(IconName::Close)
+                               .disabled(disabled)
+                               .selected(selected)
+                               .loading(loading)
+                               .when(compact, |this| this.compact())
+                               .on_click(Self::on_click),
+                    )
+                    .child(Button::new("button-icon-3")
+                               .label("Maximize")
+                               .icon(Icon::new(IconName::Maximize))
+                               .disabled(disabled)
+                               .selected(selected)
+                               .loading(loading)
+                               .when(compact, |this| this.compact())
+                               .on_click(Self::on_click),
+                    )
+                    .child(
+                        Button::new("button-icon-4")
+                            .primary()
+                            .child(
+                                h_flex()
+                                    .items_center()
+                                    .gap_2()
+                                    .child("Custom Child")
+                                    .child(IconName::ChevronDown)
+                                    .child(IconName::Eye),
+                            )
+                            .disabled(disabled)
+                            .selected(selected)
+                            .loading(loading)
+                            .when(compact, |this| this.compact())
+                            .on_click(Self::on_click),
+                    )
+                    .child(
+                        Button::new("button-icon-5-ghost")
+                            .ghost()
+                            .icon(IconName::Check)
+                            .label("Confirm")
+                            .disabled(disabled)
+                            .selected(selected)
+                            .loading(loading)
+                            .when(compact, |this| this.compact())
+                            .on_click(Self::on_click),
+                    )
+                    .child(
+                        Button::new("button-icon-6-link")
+                            .link()
+                            .icon(IconName::Check)
+                            .label("Link")
+                            .disabled(disabled)
+                            .selected(selected)
+                            .loading(loading)
+                            .when(compact, |this| this.compact())
+                            .on_click(Self::on_click),
+                    )
+                    .child(
+                        Button::new("button-icon-6-text")
+                            .text()
+                            .icon(IconName::Check)
                             .label("Text Button")
                             .disabled(disabled)
                             .selected(selected)
