@@ -1,12 +1,11 @@
-use gpui::{
-    px, size, App, AppContext, Application, Bounds, SharedString, WindowBounds, WindowOptions,
-};
+use gpui::{px, size, App, AppContext, Application, Bounds, SharedString, WindowBounds, WindowOptions};
 use gpui_component::Root;
 use story_copy::assets::Assets;
-use story_copy::image::ImageStory;
+use story_copy::calendar::CalendarStory;
 use story_copy::StoryRoot;
 
-fn main() {
+fn main(){
+
     let app = Application::new().with_assets(Assets);
     app.run(|cx: &mut App| {
         // Initialize the gpui-component library
@@ -19,16 +18,17 @@ fn main() {
             window_bounds: Some(WindowBounds::Windowed(bounds)),
             ..Default::default()
         };
-        let title = "Image Example";
+        let title = "Calendar Example";
         let title = SharedString::from(title.to_string());
         cx.open_window(option, |window, cx| {
             // 创建视图
-            let view = ImageStory::view(window, cx);
+            let view = CalendarStory::view(window, cx);
             //let root = cx.new(|cx| SingleStoryRoot::new(view, window, cx));
             let root = cx.new(|cx| StoryRoot::new(title.clone(), view, window, cx));
             cx.new(|cx| Root::new(root.into(), window, cx))
             //cx.new(|inner_cx| AccordionStory::new(window, inner_cx))
         })
-        .expect("failed to open window");
+            .expect("failed to open window");
     });
+
 }

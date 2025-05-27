@@ -15,6 +15,7 @@ pub mod badge;
 pub mod button;
 pub mod section;
 pub mod image;
+pub mod calendar;
 
 #[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct SelectLocale(SharedString);
