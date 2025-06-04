@@ -75,11 +75,9 @@ impl Render for ImageStory {
             .child(section("SVG 160px").child(self.svg_img("logo1").size_40().flex_grow()))
             .child(section("SVG 80px").child(self.svg_img("logo3").size_20().flex_grow()))
             .child(section("SVG 48px").child(self.svg_img("logo4").size_12().flex_grow()))
-            .child(
-                section("SVG from img 40px").child(
-                    // 不知道为啥，现在加载网络资源是不能显示出来的
-                    img("https://pub.lbkrs.com/files/202503/vEnnmgUM6bo362ya/sdk.svg").h_24(),
-                ),
-            )
+            .child(section("SVG from img 40px").child(
+                // 不知道为啥，现在加载网络资源是不能显示出来的
+                img("https://pub.lbkrs.com/files/202503/vEnnmgUM6bo362ya/sdk.svg").h_24(),
+            ))
     }
 }

@@ -1,7 +1,10 @@
-use gpui::{App, AppContext, Context, Div, Entity, FocusHandle, Focusable, IntoElement, ParentElement, Render, Styled, Window};
+use crate::section::section;
+use gpui::{
+    App, AppContext, Context, Div, Entity, FocusHandle, Focusable, IntoElement, ParentElement,
+    Render, Styled, Window,
+};
 use gpui_component::calendar::Calendar;
 use gpui_component::v_flex;
-use crate::section::section;
 
 pub struct CalendarStory {
     focus_handle: FocusHandle,
@@ -9,10 +12,7 @@ pub struct CalendarStory {
     calendar_wide: Entity<Calendar>,
 }
 
-
-
-impl super::Story for CalendarStory{
-
+impl super::Story for CalendarStory {
     fn title() -> &'static str {
         "Calendar"
     }
@@ -22,9 +22,7 @@ impl super::Story for CalendarStory{
     }
 }
 
-
 impl CalendarStory {
-
     pub fn view(window: &mut Window, cx: &mut App) -> Entity<Self> {
         cx.new(|cx| Self::new(window, cx))
     }
@@ -39,9 +37,7 @@ impl CalendarStory {
             focus_handle: cx.focus_handle(),
         }
     }
-
 }
-
 
 impl Focusable for CalendarStory {
     fn focus_handle(&self, cx: &App) -> FocusHandle {

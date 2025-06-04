@@ -1,17 +1,17 @@
-use gpui::{px, size, App, AppContext, Application, Bounds, SharedString, WindowBounds, WindowOptions};
+use gpui::{
+    px, size, App, AppContext, Application, Bounds, SharedString, WindowBounds, WindowOptions,
+};
 use gpui_component::Root;
 use story_copy::assets::Assets;
 use story_copy::calendar::CalendarStory;
 use story_copy::StoryRoot;
 
-fn main(){
-
+fn main() {
     let app = Application::new().with_assets(Assets);
     app.run(|cx: &mut App| {
         // Initialize the gpui-component library
         gpui_component::init(cx);
         cx.activate(true);
-
 
         let bounds = Bounds::centered(None, size(px(1600.), px(1200.0)), cx);
         let option = WindowOptions {
@@ -28,7 +28,6 @@ fn main(){
             cx.new(|cx| Root::new(root.into(), window, cx))
             //cx.new(|inner_cx| AccordionStory::new(window, inner_cx))
         })
-            .expect("failed to open window");
+        .expect("failed to open window");
     });
-
 }

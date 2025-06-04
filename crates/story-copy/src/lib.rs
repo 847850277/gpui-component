@@ -13,9 +13,10 @@ pub mod app_title_bar;
 pub mod assets;
 pub mod badge;
 pub mod button;
-pub mod section;
-pub mod image;
 pub mod calendar;
+pub mod checkbox;
+pub mod image;
+pub mod section;
 
 #[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct SelectLocale(SharedString);

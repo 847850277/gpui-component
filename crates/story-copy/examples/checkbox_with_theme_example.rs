@@ -3,7 +3,7 @@ use gpui::{
 };
 use gpui_component::Root;
 use story_copy::assets::Assets;
-use story_copy::image::ImageStory;
+use story_copy::checkbox::CheckboxStory;
 use story_copy::StoryRoot;
 
 fn main() {
@@ -18,11 +18,11 @@ fn main() {
             window_bounds: Some(WindowBounds::Windowed(bounds)),
             ..Default::default()
         };
-        let title = "Image Example";
+        let title = "CheckBox Example";
         let title = SharedString::from(title.to_string());
         cx.open_window(option, |window, cx| {
             // 创建视图
-            let view = ImageStory::view(window, cx);
+            let view = CheckboxStory::view(window, cx);
             //let root = cx.new(|cx| SingleStoryRoot::new(view, window, cx));
             let root = cx.new(|cx| StoryRoot::new(title.clone(), view, window, cx));
             cx.new(|cx| Root::new(root.into(), window, cx))
