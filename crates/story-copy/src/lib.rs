@@ -15,6 +15,9 @@ pub mod badge;
 pub mod button;
 pub mod calendar;
 pub mod checkbox;
+pub mod clipboard;
+pub mod color_picker;
+pub mod date_picker;
 pub mod image;
 pub mod section;
 
