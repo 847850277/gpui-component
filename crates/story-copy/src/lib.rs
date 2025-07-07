@@ -1,4 +1,3 @@
-use crate::accordion::AccordionStory;
 use app_title_bar::AppTitleBar;
 use gpui::private::serde_derive::Deserialize;
 use gpui::{
@@ -18,6 +17,8 @@ pub mod checkbox;
 pub mod clipboard;
 pub mod color_picker;
 pub mod date_picker;
+pub mod drawer;
+pub mod dropdown;
 pub mod image;
 pub mod section;
 
